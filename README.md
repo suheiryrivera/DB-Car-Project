@@ -2,7 +2,8 @@
 DB project by Suheiry Rivera
 
 **Progress**
-- Created Database hosted in Render, the credentials are: 
+- Created Database hosted in Render, the credentials are:
+  
   Hostname: dpg-db3h3fbtqb8s73dvp3a0-a
   Database: dbclass_823k
   Username: suheiry
