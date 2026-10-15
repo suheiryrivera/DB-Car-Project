@@ -4,7 +4,7 @@ import pandas as pd
 # URL connection
 url = ('postgresql://suheiry:PiMw0t7wnl08ibDqaFjTkQbVcttBetXR'
        '@dpg-db3h3fbtqb8s73dvp3a0-a.virginia-postgres.render.com'
-       '/newdb')
+       '/dbclass_823k')
 
 # DB connection
 conn = psycopg2.connect(url)
