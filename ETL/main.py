@@ -4,7 +4,7 @@ import pandas as pd
 # URL connection
 url = ('postgresql://suheiry:PiMw0t7wnl08ibDqaFjTkQbVcttBetXR'
        '@dpg-db3h3fbtqb8s73dvp3a0-a.virginia-postgres.render.com'
-       '/dbclass_823k')
+       '/newdb')
 
 # DB connection
 conn = psycopg2.connect(url)
@@ -17,6 +17,7 @@ cur = conn.cursor()
 
 ###########################INSERT ROW###############################
 # Vehicle Kind Table
+print("Inserting data into vehicle_kind table...", flush=True)
 df = pd.read_parquet('vehicle_kind.parquet', engine='pyarrow')
 for x in range(len(df)):
     name = df['name'].iloc[x]
@@ -28,6 +29,7 @@ for x in range(len(df)):
     cur.execute(query, (name, vehicle_kind_id))
 
 # Fuel Type Table
+print("Inserting data into fuel_type table...", flush=True)
 df = pd.read_parquet('fuel_type.parquet', engine='pyarrow')
 for x in range(len(df)):
     name = df['name'].iloc[x]
@@ -39,6 +41,7 @@ for x in range(len(df)):
     cur.execute(query, (name, fuel_type_id))
 
 # Vehicle Status Table
+print("Inserting data into vehicle_status table...", flush=True)
 df = pd.read_parquet('vehicle_status.parquet', engine='pyarrow')
 for x in range(len(df)):
     name = df['name'].iloc[x]
@@ -50,6 +53,7 @@ for x in range(len(df)):
     cur.execute(query, (name, vehicle_status_id))
 
 # Parking Area Table
+print("Inserting data into parking_area table...", flush=True)
 df = pd.read_parquet('parking_area.parquet', engine='pyarrow')
 for x in range(len(df)):
     name = df['name'].iloc[x]
@@ -67,6 +71,7 @@ for x in range(len(df)):
     cur.execute(query, (name, capacity, geom, created_at, parking_area_id))
 
 # Vehicle Type Table
+print("Inserting data into vehicle_type table...", flush=True)
 df = pd.read_parquet('vehicle_type.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_kind_id = int(df['vehicle_kind_id'].iloc[x])
@@ -84,6 +89,7 @@ for x in range(len(df)):
     cur.execute(query, (vehicle_kind_id, fuel_type_id, emissions_rating, created_at, vehicle_type_id))
 
 # Driver Table
+print("Inserting data into driver table...", flush=True)
 df = pd.read_parquet('driver.parquet', engine='pyarrow')
 for x in range(len(df)):
     first_name = df['first_name'].iloc[x]
@@ -101,6 +107,7 @@ for x in range(len(df)):
     cur.execute(query, (first_name, last_name, license_number, hired_at, driver_id))
 
 # Vehicle Table
+print("Inserting data into vehicle table...", flush=True)
 df = pd.read_parquet('vehicle.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_type_id = int(df['vehicle_type_id'].iloc[x])
@@ -124,6 +131,7 @@ for x in range(len(df)):
     cur.execute(query, (vehicle_type_id, vehicle_status_id, plate_number, make, model, year, created_at, vehicle_id))
 
 # Road Segment Table
+print("Inserting data into road_segment table... Takes approx. 10 minutes", flush=True)
 df = pd.read_parquet('road_segment.parquet', engine='pyarrow')
 for x in range(len(df)):
     name = df['name'].iloc[x]
@@ -145,6 +153,7 @@ for x in range(len(df)):
     cur.execute(query, (name, speed_limit_kph, geom, created_at, is_oneway, direction, road_id))
 
 # Vehicle Assignment Table
+print("Inserting data into vehicle_assignment table...", flush=True)
 df = pd.read_parquet('vehicle_assignment.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_id = int(df['vehicle_id'].iloc[x])
@@ -162,6 +171,7 @@ for x in range(len(df)):
     cur.execute(query, (vehicle_id, driver_id, assigned_from, assigned_to, assignment_id))
 
 # Location Ping Table
+print("Inserting data into location_ping table... Takes approx. 50 minutes", flush=True)
 df = pd.read_parquet('location_ping.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_id = int(df['vehicle_id'].iloc[x])
@@ -181,6 +191,7 @@ for x in range(len(df)):
     cur.execute(query, (vehicle_id, ts, geom, speed_kph, heading_deg, ping_id))
 
 # Trip Table
+print("Inserting data into trip table...", flush=True)
 df = pd.read_parquet('trip.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_id = int(df['vehicle_id'].iloc[x])
