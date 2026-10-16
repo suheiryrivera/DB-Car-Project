@@ -6,11 +6,11 @@ DB project by Suheiry Rivera
   
   Hostname: dpg-db3h3fbtqb8s73dvp3a0-a
   
-  Database: dbclass_823k
+  Database: ph1
   
   Username: suheiry
   
-  External DB URL: postgresql://suheiry:PiMw0t7wnl08ibDqaFjTkQbVcttBetXR@dpg-db3h3fbtqb8s73dvp3a0-a.virginia-postgres.render.com/dbclass_823k
+  External DB URL: postgresql://suheiry:PiMw0t7wnl08ibDqaFjTkQbVcttBetXR@dpg-db3h3fbtqb8s73dvp3a0-a.virginia-postgres.render.com/ph1
 
 
 - Implemented Database with schemas
