@@ -4,7 +4,7 @@ import pandas as pd
 # URL connection
 url = ('postgresql://suheiry:PiMw0t7wnl08ibDqaFjTkQbVcttBetXR'
        '@dpg-db3h3fbtqb8s73dvp3a0-a.virginia-postgres.render.com'
-       '/dbclass_823k')
+       '/ph1')
 
 # DB connection
 conn = psycopg2.connect(url)
@@ -62,7 +62,7 @@ for x in range(len(df)):
     created_at = df['created_at'].iloc[x]
     parking_area_id = int(df['parking_area_id'].iloc[x])
     query = """INSERT INTO parking_area(name, capacity, geom, created_at, parking_area_id)
-                VALUES (%s, %s, %s, %s, %s)"""
+             VALUES (%s, %s, ST_GeomFromEWKB(decode(%s, 'hex')), %s, %s)"""
     name = name
     capacity = capacity
     geom = geom
@@ -131,7 +131,7 @@ for x in range(len(df)):
     cur.execute(query, (vehicle_type_id, vehicle_status_id, plate_number, make, model, year, created_at, vehicle_id))
 
 # Road Segment Table
-print("Inserting data into road_segment table... Takes approx. 10 minutes", flush=True)
+print("Inserting data into road_segment table... Takes approx. 5 minutes", flush=True)
 df = pd.read_parquet('road_segment.parquet', engine='pyarrow')
 for x in range(len(df)):
     name = df['name'].iloc[x]
@@ -142,7 +142,7 @@ for x in range(len(df)):
     direction = df['direction'].iloc[x]
     road_id = int(df['road_id'].iloc[x])
     query = """INSERT INTO road_segment(name, speed_limit_kph, geom, created_at, is_oneway, direction, road_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+             VALUES (%s, %s, ST_GeomFromEWKB(decode(%s, 'hex')), %s, %s, %s, %s)"""
     name = name
     speed_limit_kph = speed_limit_kph
     geom = geom
@@ -158,8 +158,12 @@ df = pd.read_parquet('vehicle_assignment.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_id = int(df['vehicle_id'].iloc[x])
     driver_id = int(df['driver_id'].iloc[x])
-    assigned_from = None #(df['assigned_from'].iloc[x])
-    assigned_to = None #df['assigned_to'].iloc[x]
+    assigned_from = df['assigned_from'].iloc[x]
+    assigned_to = df['assigned_to'].iloc[x]
+    if pd.isna(assigned_from):
+        assigned_from = None
+    if pd.isna(assigned_to):
+        assigned_to = None
     assignment_id = int(df['assignment_id'].iloc[x])
     query = """INSERT INTO vehicle_assignment(vehicle_id, driver_id, assigned_from, assigned_to, assignment_id)
                 VALUES (%s, %s, %s, %s, %s);"""
@@ -171,7 +175,7 @@ for x in range(len(df)):
     cur.execute(query, (vehicle_id, driver_id, assigned_from, assigned_to, assignment_id))
 
 # Location Ping Table
-print("Inserting data into location_ping table... Takes approx. 50 minutes", flush=True)
+print("Inserting data into location_ping table... Takes approx. 30 minutes", flush=True)
 df = pd.read_parquet('location_ping.parquet', engine='pyarrow')
 for x in range(len(df)):
     vehicle_id = int(df['vehicle_id'].iloc[x])
@@ -181,7 +185,7 @@ for x in range(len(df)):
     heading_deg = float(df['heading_deg'].iloc[x])
     ping_id = int(df['ping_id'].iloc[x])
     query = """INSERT INTO location_ping(vehicle_id, ts, geom, speed_kph, heading_deg, ping_id)
-                VALUES (%s, %s, %s, %s, %s, %s);"""
+             VALUES (%s, %s, ST_GeomFromEWKB(decode(%s, 'hex')), %s, %s, %s);"""
     vehicle_id = vehicle_id
     ts = ts;
     geom = geom;
@@ -202,7 +206,7 @@ for x in range(len(df)):
     distance_km = float(df['distance_km'].iloc[x])
     trip_id = int(df['trip_id'].iloc[x])
     query = """INSERT INTO trip(vehicle_id, start_ts, end_ts, start_geom, end_geom, distance_km, trip_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s);"""
+             VALUES (%s, %s, %s, ST_GeomFromEWKB(decode(%s, 'hex')), ST_GeomFromEWKB(decode(%s, 'hex')), %s, %s);"""
     vehicle_id = vehicle_id
     start_ts = start_ts
     end_ts = end_ts
