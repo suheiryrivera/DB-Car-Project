@@ -1,4 +1,4 @@
-from API.DB import get_connection
+from backend.API.DB import get_connection
 from pydantic import BaseModel
 from typing import Optional
 from psycopg2.extras import DictCursor

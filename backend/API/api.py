@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from API.DB import get_connection
+from backend.API.DB import get_connection
 from backend.DAO.vehicle_dao import VehicleCreate, VehicleUpdate
 from backend.HANDLER.vehicle_handler import VehicleHandler
 
