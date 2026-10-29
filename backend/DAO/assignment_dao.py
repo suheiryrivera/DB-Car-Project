@@ -70,9 +70,9 @@ class VehicleAssignmentUpdate(BaseModel):
 class VehicleAssignmentDAO:
     def __init__(self):
         self.pool = SimpleConnectionPool(
-            POOL_CONFIG["minconn"],
-            POOL_CONFIG["maxconn"],
-            **PG_DB_CONFIG
+            minconn=1,
+            maxconn=10,
+            dsn=os.environ["DATABASE_URL"]
         )
 
     def vehicle_exists(self, vehicle_id: int) -> bool:
