@@ -1,9 +1,12 @@
-from config.dbconfig import PG_DB_CONFIG, POOL_CONFIG
+import os
+from psycopg2.pool import SimpleConnectionPool
+from backend.API.DB import get_connection
 from pydantic import BaseModel, field_validator, field_serializer
 from typing import Optional
 from datetime import datetime, timezone
 from psycopg2.extras import DictCursor
 from psycopg2.pool import SimpleConnectionPool
+
 
 class VehicleAssignment(BaseModel):
     assignment_id: Optional[int] = None

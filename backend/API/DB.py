@@ -1,7 +1,10 @@
 import psycopg2
 import os
 
-def get_connection():
-    return psycopg2.connect(
-        os.environ["DATABASE_URL"]
-    )
+class VehicleAssignmentDAO:
+    def __init__(self):
+        self.pool = SimpleConnectionPool(
+            minconn=1,
+            maxconn=10,
+            dsn=os.environ["DATABASE_URL"]
+        )
