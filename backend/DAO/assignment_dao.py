@@ -1,11 +1,10 @@
 import os
-from psycopg2.pool import SimpleConnectionPool
-from backend.API.DB import get_connection
-from pydantic import BaseModel, field_validator, field_serializer
 from typing import Optional
 from datetime import datetime, timezone
+from pydantic import BaseModel, field_validator, field_serializer
 from psycopg2.extras import DictCursor
-from psycopg2.pool import SimpleConnectionPool
+from functools import lru_cache
+from psycopg2.pool import ThreadedConnectionPool
 
 
 class VehicleAssignment(BaseModel):
@@ -66,14 +65,17 @@ class VehicleAssignmentUpdate(BaseModel):
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
-
+    
+@lru_cache(maxsize=1)
+def get_assignment_pool():
+    return ThreadedConnectionPool(
+        minconn=1,
+        maxconn=10,
+        dsn=os.environ["DATABASE_URL"]
+    )
 class VehicleAssignmentDAO:
     def __init__(self):
-        self.pool = SimpleConnectionPool(
-            minconn=1,
-            maxconn=10,
-            dsn=os.environ["DATABASE_URL"]
-        )
+        self.pool = get_assignment_pool()
 
     def vehicle_exists(self, vehicle_id: int) -> bool:
         conn = self.pool.getconn()
