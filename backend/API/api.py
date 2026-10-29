@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -7,6 +7,8 @@ from backend.DAO.vehicle_dao import VehicleCreate, VehicleUpdate
 from backend.HANDLER.vehicle_handler import VehicleHandler
 from backend.DAO.driver_dao import DriverCreate, DriverUpdate
 from backend.HANDLER.driver_handler import DriverHandler
+from backend.HANDLER.assignment_handler import VehicleAssignmentHandler
+from backend.DAO.assignment_dao import VehicleAssignment, VehicleAssignmentUpdate
 
 app = FastAPI()
 @app.exception_handler(RequestValidationError)
@@ -123,3 +125,33 @@ async def update_driver(driver_id: int, driver_data: DriverUpdate):
 @app.delete("/api/v1/drivers/{driver_id}")
 async def delete_driver(driver_id: int):
     return DriverHandler().delete_driver(driver_id)
+
+# assignment stuff -----
+
+@app.get("/api/v1/vehicle-assignments", status_code=status.HTTP_200_OK)
+async def get_vehicle_assignments(
+    vehicle_id: int | None = None,
+    driver_id: int | None = None,
+    active: bool | None = None,
+    limit: int = 20,
+    offset: int = 0
+):
+    return VehicleAssignmentHandler().get_all_assignments(
+        vehicle_id=vehicle_id, driver_id=driver_id, active=active, limit=limit, offset=offset
+    )
+
+@app.post("/api/v1/vehicle-assignments", status_code=status.HTTP_201_CREATED)
+async def create_vehicle_assignment(new_assignment: VehicleAssignment):
+    return VehicleAssignmentHandler().create_assignment(new_assignment)
+
+@app.get("/api/v1/vehicle-assignments/{assignment_id}", status_code=status.HTTP_200_OK)
+async def get_vehicle_assignment(assignment_id: int):
+    return VehicleAssignmentHandler().get_assignment_by_id(assignment_id)
+
+@app.put("/api/v1/vehicle-assignments/{assignment_id}", status_code=status.HTTP_200_OK)
+async def update_vehicle_assignment(assignment_id: int, assignment_data: VehicleAssignmentUpdate):
+    return VehicleAssignmentHandler().update_assignment(assignment_id, assignment_data)
+
+@app.delete("/api/v1/vehicle-assignments/{assignment_id}", status_code=status.HTTP_200_OK)
+async def delete_vehicle_assignment(assignment_id: int):
+    return VehicleAssignmentHandler().delete_assignment(assignment_id)
