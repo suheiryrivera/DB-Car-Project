@@ -51,8 +51,10 @@ class VehicleAssignmentHandler:
     def update_assignment(self, assignment_id: int, assignment_data: VehicleAssignmentUpdate):
         if assignment_id <= 0:
             raise HTTPException(status_code=400, detail="assignment_id must be a positive integer.")
-
-        update_dict = assignment_data.model_dump(exclude_unset=True)
+        update_dict = {
+        field: getattr(assignment_data, field)
+        for field in assignment_data.model_fields_set
+        }       
 
         if not update_dict:
             raise HTTPException(status_code=400, detail="Request body cannot be empty.")
@@ -65,7 +67,13 @@ class VehicleAssignmentHandler:
 
         if existing is None:
             raise HTTPException(status_code=404, detail="Vehicle assignment not found.")
-        updated_data = existing.model_dump()
+        updated_data = {
+            "assignment_id": existing.assignment_id,
+            "vehicle_id": existing.vehicle_id,
+            "driver_id": existing.driver_id,
+            "assigned_from": existing.assigned_from,
+            "assigned_to": existing.assigned_to
+        }
         updated_data.update(update_dict)
 
         # Only convert newly provided timestamps; existing DB values are already UTC.
