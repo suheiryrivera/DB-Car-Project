@@ -1,4 +1,4 @@
-from backend.API.DB import get_connection
+from backend.API.DB import pooled_connection
 from pydantic import BaseModel
 from typing import Optional
 from psycopg2.extras import DictCursor
@@ -22,7 +22,7 @@ class VehicleUpdate(BaseModel):
 
 class VehicleDAO:
     def get_all_vehicles(self, limit: int = 20, offset: int = 0, status: Optional[str | int] = None, plate_number: Optional[str] = None) -> list[dict]:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 query = """
                 SELECT v.vehicle_id, v.vehicle_type_id, v.vehicle_status_id, 
@@ -59,7 +59,7 @@ class VehicleDAO:
                 return result
 
     def get_vehicles_count(self, status: Optional[str | int] = None, plate_number: Optional[str] = None) -> int:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor() as cursor:
                 query = """
                 SELECT COUNT(*) 
@@ -83,7 +83,7 @@ class VehicleDAO:
                 return cursor.fetchone()[0]
 
     def get_vehicle_by_id(self, vehicle_id: int) -> Optional[dict]:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 query = """
                 SELECT vehicle_id, vehicle_type_id, vehicle_status_id, 
@@ -104,7 +104,7 @@ class VehicleDAO:
                 return row_dict
 
     def plate_exists(self, plate_number: str, exclude_id: Optional[int] = None) -> bool:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor() as cursor:
                 if exclude_id:
                     cursor.execute("SELECT 1 FROM public.vehicle WHERE plate_number = %s AND vehicle_id != %s", (plate_number, exclude_id))
@@ -113,7 +113,7 @@ class VehicleDAO:
                 return cursor.fetchone() is not None
 
     def get_vehicle_current_location(self, vehicle_id: int) -> dict | None:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 check_query = "SELECT vehicle_id FROM public.vehicle WHERE vehicle_id = %s"
                 cursor.execute(check_query, (vehicle_id,))
@@ -154,7 +154,7 @@ class VehicleDAO:
                 return {"exists": True, "ping": row_dict}
 
     def create_vehicle(self, new_vehicle: VehicleCreate) -> int:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 cursor.execute("SELECT nextval('public.vehicle_id_seq')")
                 new_id = cursor.fetchone()[0]
@@ -176,7 +176,7 @@ class VehicleDAO:
                 return new_id
 
     def update_vehicle(self, vehicle_id: int, vehicle: VehicleUpdate) -> dict:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 data = vehicle.model_dump(exclude_unset=True)
                 
@@ -211,7 +211,7 @@ class VehicleDAO:
                 return row_dict
 
     def delete_vehicle(self, vehicle_id: int) -> bool:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 query = "DELETE FROM public.vehicle WHERE vehicle_id = %s"
                 try:

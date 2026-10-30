@@ -1,5 +1,5 @@
 import psycopg2
-from backend.API.DB import get_connection
+from backend.API.DB import pooled_connection
 from pydantic import BaseModel
 from typing import Optional
 from psycopg2.extras import DictCursor
@@ -24,7 +24,7 @@ class DriverDAO:
         return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc).replace(tzinfo=None)
 
     def get_all_drivers(self, limit: int = 20, offset: int = 0, name: Optional[str] = None, license_number: Optional[str] = None) -> list[dict]:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 query = """
                 SELECT driver_id, first_name, last_name, license_number, hired_at
@@ -55,7 +55,7 @@ class DriverDAO:
                 return result
 
     def get_drivers_count(self, name: Optional[str] = None, license_number: Optional[str] = None) -> int:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor() as cursor:
                 query = "SELECT COUNT(*) FROM public.driver WHERE 1=1"
                 params = []
@@ -69,7 +69,7 @@ class DriverDAO:
                 return cursor.fetchone()[0]
 
     def get_driver_by_id(self, driver_id: int) -> Optional[dict]:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 query = """
                 SELECT driver_id, first_name, last_name, license_number, hired_at
@@ -87,7 +87,7 @@ class DriverDAO:
                 return row_dict
 
     def license_exists(self, license_number: str, exclude_id: Optional[int] = None) -> bool:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor() as cursor:
                 if exclude_id:
                     cursor.execute("SELECT 1 FROM public.driver WHERE license_number = %s AND driver_id != %s", (license_number, exclude_id))
@@ -96,7 +96,7 @@ class DriverDAO:
                 return cursor.fetchone() is not None
 
     def create_driver(self, new_driver: DriverCreate) -> int:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor() as cursor:
                 query = """
                 INSERT INTO public.driver
@@ -119,7 +119,7 @@ class DriverDAO:
                 return new_id
 
     def update_driver(self, driver_id: int, driver: DriverUpdate) -> dict:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 data = driver.model_dump(exclude_unset=True)
                 query = """
@@ -151,7 +151,7 @@ class DriverDAO:
                     raise e
 
     def delete_driver(self, driver_id: int) -> bool:
-        with get_connection() as conn:
+        with pooled_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
                 query = "DELETE FROM public.driver WHERE driver_id = %s"
                 try:
