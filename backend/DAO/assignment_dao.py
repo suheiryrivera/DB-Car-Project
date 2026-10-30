@@ -159,9 +159,11 @@ class VehicleAssignmentDAO:
         try:
             cursor = conn.cursor(cursor_factory=DictCursor)
             query = """
-            insert into vehicle_assignment (vehicle_id, driver_id, assigned_from, assigned_to)
-            values (%(vehicle_id)s, %(driver_id)s, %(assigned_from)s, %(assigned_to)s)
-            returning assignment_id;
+            INSERT INTO public.vehicle_assignment
+            (assignment_id, vehicle_id, driver_id, assigned_from, assigned_to)
+            VALUES
+            (nextval('public.vehicle_assignment_id_seq'), %(vehicle_id)s, %(driver_id)s,%(assigned_from)s,%(assigned_to)s)
+            RETURNING assignment_id;
             """
             cursor.execute(query, new_assignment.model_dump(exclude_none=False))
             assignment_id = cursor.fetchone()[0]
