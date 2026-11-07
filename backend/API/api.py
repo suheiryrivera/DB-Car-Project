@@ -9,6 +9,9 @@ from backend.DAO.driver_dao import DriverCreate, DriverUpdate
 from backend.HANDLER.driver_handler import DriverHandler
 from backend.HANDLER.assignment_handler import VehicleAssignmentHandler
 from backend.DAO.assignment_dao import VehicleAssignment, VehicleAssignmentUpdate
+from backend.DAO.road_segment_dao import RoadSegmentCreate, RoadSegmentUpdate
+from backend.HANDLER.road_segment_handler import RoadSegmentHandler
+
 
 app = FastAPI()
 @app.exception_handler(RequestValidationError)
@@ -155,3 +158,67 @@ async def update_vehicle_assignment(assignment_id: int, assignment_data: Vehicle
 @app.delete("/api/v1/vehicle-assignments/{assignment_id}", status_code=status.HTTP_200_OK)
 async def delete_vehicle_assignment(assignment_id: int):
     return VehicleAssignmentHandler().delete_assignment(assignment_id)
+
+
+# Road Segment endpoints -----
+
+@app.get("/api/v1/road-segments")
+async def get_all_road_segments(
+    limit: int = 20,
+    offset: int = 0,
+    name: str | None = None,
+    min_speed_kph: int | None = None,
+    max_speed_kph: int | None = None,
+    bbox: str | None = None
+):
+    return RoadSegmentHandler().get_all_road_segments(
+        limit=limit,
+        offset=offset,
+        name=name,
+        min_speed_kph=min_speed_kph,
+        max_speed_kph=max_speed_kph,
+        bbox=bbox
+    )
+
+
+@app.post("/api/v1/road-segments", status_code=201)
+async def create_road_segment(new_road: RoadSegmentCreate):
+    return RoadSegmentHandler().create_road_segment(new_road)
+
+
+@app.get("/api/v1/road-segments/geojson")
+async def get_road_segments_geojson(
+    limit: int = 15000,
+    offset: int = 0,
+    name: str | None = None,
+    min_speed_kph: int | None = None,
+    max_speed_kph: int | None = None
+):
+    return RoadSegmentHandler().get_road_segments_geojson(
+        limit=limit,
+        offset=offset,
+        name=name,
+        min_speed_kph=min_speed_kph,
+        max_speed_kph=max_speed_kph
+    )
+
+
+@app.get("/api/v1/road-segments/{road_id}")
+async def get_road_segment_by_id(road_id: int):
+    return RoadSegmentHandler().get_road_segment_by_id(road_id)
+
+
+@app.put("/api/v1/road-segments/{road_id}")
+async def update_road_segment(
+    road_id: int,
+    road_data: RoadSegmentUpdate
+):
+    return RoadSegmentHandler().update_road_segment(
+        road_id,
+        road_data
+    )
+
+
+@app.delete("/api/v1/road-segments/{road_id}/remove")
+async def delete_road_segment(road_id: int):
+    return RoadSegmentHandler().delete_road_segment(road_id)
