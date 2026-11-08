@@ -11,6 +11,9 @@ from backend.HANDLER.assignment_handler import VehicleAssignmentHandler
 from backend.DAO.assignment_dao import VehicleAssignment, VehicleAssignmentUpdate
 from backend.DAO.road_segment_dao import RoadSegmentCreate, RoadSegmentUpdate
 from backend.HANDLER.road_segment_handler import RoadSegmentHandler
+from backend.DAO.parking_area_dao import ParkingAreaCreate, ParkingAreaUpdate
+from backend.HANDLER.parking_area_handler import ParkingAreaHandler
+
 
 
 app = FastAPI()
@@ -222,3 +225,51 @@ async def update_road_segment(
 @app.delete("/api/v1/road-segments/{road_id}/remove")
 async def delete_road_segment(road_id: int):
     return RoadSegmentHandler().delete_road_segment(road_id)
+
+
+
+# Parking Area endpoints -----
+
+@app.get("/api/v1/parking-areas")
+async def get_all_parking_areas(
+    limit: int = 20,
+    offset: int = 0,
+    name: str | None = None,
+    bbox: str | None = None
+):
+    return ParkingAreaHandler().get_all_parking_areas(
+        limit=limit,
+        offset=offset,
+        name=name,
+        bbox=bbox
+    )
+
+
+@app.post("/api/v1/parking-areas", status_code=201)
+async def create_parking_area(new_area: ParkingAreaCreate):
+    return ParkingAreaHandler().create_parking_area(new_area)
+
+
+@app.get("/api/v1/parking-areas/{parking_area_id}")
+async def get_parking_area_by_id(parking_area_id: int):
+    return ParkingAreaHandler().get_parking_area_by_id(
+        parking_area_id
+    )
+
+
+@app.put("/api/v1/parking-areas/{parking_area_id}")
+async def update_parking_area(
+    parking_area_id: int,
+    area_data: ParkingAreaUpdate
+):
+    return ParkingAreaHandler().update_parking_area(
+        parking_area_id,
+        area_data
+    )
+
+
+@app.delete("/api/v1/parking-areas/{parking_area_id}")
+async def delete_parking_area(parking_area_id: int):
+    return ParkingAreaHandler().delete_parking_area(
+        parking_area_id
+    )

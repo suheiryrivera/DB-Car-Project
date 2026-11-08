@@ -26,10 +26,10 @@ class RoadSegmentDAO:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
 
                 query = """
-                    SELECT road_id, name, speed_limit_kph,
+                    SELECT road_id, name, speed_limit_kph,is_oneway,direction,
                            ST_AsGeoJSON(geom) AS geom,
                            created_at
-                    FROM projectfall2026.road_segment
+                    FROM public.road_segment
                     WHERE road_id = %s;
                 """
 
@@ -64,7 +64,7 @@ class RoadSegmentDAO:
                 query = """
                     SELECT road_id, name, speed_limit_kph,
                            created_at
-                    FROM projectfall2026.road_segment
+                    FROM public.road_segment
                     WHERE 1=1
                 """
 
@@ -122,7 +122,7 @@ class RoadSegmentDAO:
 
                 query = """
                     SELECT COUNT(*)
-                    FROM projectfall2026.road_segment
+                    FROM public.road_segment
                     WHERE 1=1
                 """
 
@@ -157,11 +157,11 @@ class RoadSegmentDAO:
         with pooled_connection() as conn:
             with conn.cursor() as cursor:
                 query = """
-                    INSERT INTO projectfall2026.road_segment
+                    INSERT INTO public.road_segment
                     (road_id, name, speed_limit_kph,
                      is_oneway, direction, geom, created_at)
                     VALUES (
-                        nextval('projectfall2026.road_segment_id_seq'),
+                        nextval('public.road_segment_id_seq'),
                         %s, %s, %s, %s,
                         ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326),
                         CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
@@ -217,7 +217,7 @@ class RoadSegmentDAO:
         params.append(road_id)
 
         query = f"""
-            UPDATE projectfall2026.road_segment
+            UPDATE public.road_segment
             SET {", ".join(assignments)}
             WHERE road_id = %s
             RETURNING road_id;
@@ -236,7 +236,7 @@ class RoadSegmentDAO:
             with conn.cursor() as cursor:
 
                 query = """
-                    DELETE FROM projectfall2026.road_segment
+                    DELETE FROM public.road_segment
                     WHERE road_id = %s
                     RETURNING road_id;
                 """
@@ -263,7 +263,7 @@ class RoadSegmentDAO:
                            is_oneway, direction,
                            ST_AsGeoJSON(geom) AS geom,
                            created_at
-                    FROM projectfall2026.road_segment
+                    FROM public.road_segment 
                     WHERE 1=1
                 """
 

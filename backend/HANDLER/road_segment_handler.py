@@ -1,5 +1,4 @@
 
-
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from backend.DAO.road_segment_dao import (

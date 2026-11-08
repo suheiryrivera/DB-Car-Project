@@ -27,7 +27,7 @@ class ParkingAreaDAO:
                     SELECT parking_area_id, name, capacity,
                            ST_AsGeoJSON(geom) AS geom,
                            created_at
-                    FROM projectfall2026.parking_area
+                    FROM public.parking_area
                     WHERE parking_area_id = %s;
                 """
 
@@ -63,7 +63,7 @@ class ParkingAreaDAO:
                 query = """
                     SELECT parking_area_id, name, capacity,
                            created_at
-                    FROM projectfall2026.parking_area
+                    FROM public.parking_area
                     WHERE 1=1
                 """
 
@@ -112,7 +112,7 @@ class ParkingAreaDAO:
 
                 query = """
                     SELECT COUNT(*)
-                    FROM projectfall2026.parking_area
+                    FROM public.parking_area
                     WHERE 1=1
                 """
 
@@ -134,5 +134,97 @@ class ParkingAreaDAO:
                 cursor.execute(query, tuple(params))
 
                 return cursor.fetchone()[0]
+
+    def create_parking_area(self, new_area: ParkingAreaCreate):
+        with pooled_connection() as conn:
+            with conn.cursor() as cursor:
+
+                query = """
+                    INSERT INTO public.parking_area
+                    (parking_area_id, name, capacity, geom, created_at)
+                    VALUES (
+                        nextval('public.parking_area_id_seq'),
+                        %s, %s,
+                        ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326),
+                        CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                    )
+                    RETURNING parking_area_id;
+                """
+
+                cursor.execute(query, (
+                    new_area.name.strip(),
+                    new_area.capacity,
+                    json.dumps(new_area.geom)
+                ))
+
+                new_id = cursor.fetchone()[0]
+                return new_id
+
+
+    def update_parking_area(
+        self, parking_area_id: int, area_data: ParkingAreaUpdate
+    ):
+        data = area_data.model_dump(exclude_unset=True)
+
+        fields = {
+            "name": "name",
+            "capacity": "capacity"
+        }
+
+        assignments = []
+        params = []
+
+        for field, value in data.items():
+            if field == "geom":
+                assignments.append(
+                    "geom = ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)"
+                )
+                params.append(json.dumps(value))
+
+            elif field in fields:
+                assignments.append(f"{fields[field]} = %s")
+
+                if field == "name" and isinstance(value, str):
+                    value = value.strip()
+
+                params.append(value)
+
+        if not assignments:
+            raise ValueError("No fields to update")
+
+        params.append(parking_area_id)
+
+        query = f"""
+            UPDATE public.parking_area
+            SET {", ".join(assignments)}
+            WHERE parking_area_id = %s
+            RETURNING parking_area_id;
+        """
+
+        with pooled_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, tuple(params))
+                row = cursor.fetchone()
+
+                return row[0] if row else None
+
+
+    def delete_parking_area(self, parking_area_id: int):
+        with pooled_connection() as conn:
+            with conn.cursor() as cursor:
+
+                query = """
+                    DELETE FROM public.parking_area
+                    WHERE parking_area_id = %s
+                    RETURNING parking_area_id;
+                """
+
+                cursor.execute(query, (parking_area_id,))
+                deleted = cursor.fetchone()
+
+                return deleted is not None
+
+
+
 
 
