@@ -9,13 +9,10 @@ from backend.DAO.driver_dao import DriverCreate, DriverUpdate
 from backend.HANDLER.driver_handler import DriverHandler
 from backend.HANDLER.assignment_handler import VehicleAssignmentHandler
 from backend.DAO.assignment_dao import VehicleAssignment, VehicleAssignmentUpdate
-from backend.DAO.road_segment_dao import RoadSegmentCreate, RoadSegmentUpdate
-from backend.HANDLER.road_segment_handler import RoadSegmentHandler
-from backend.DAO.parking_area_dao import ParkingAreaCreate, ParkingAreaUpdate
-from backend.HANDLER.parking_area_handler import ParkingAreaHandler
-
-
-
+from backend.DAO.location_ping_dao import LocationPingCreate, LocationPingUpdate
+from backend.HANDLER.location_ping_handler import LocationPingHandler
+from backend.DAO.trip_dao import TripCreate, TripUpdate
+from backend.HANDLER.trip_handler import TripHandler
 app = FastAPI()
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
@@ -162,114 +159,88 @@ async def update_vehicle_assignment(assignment_id: int, assignment_data: Vehicle
 async def delete_vehicle_assignment(assignment_id: int):
     return VehicleAssignmentHandler().delete_assignment(assignment_id)
 
+# location ping stuff -----
 
-# Road Segment endpoints -----
+@app.get("/api/v1/location-pings")
+async def get_all_location_pings(
+    vehicle_id: int | None = None,
+    from_ts: str | None = None,
+    to_ts: str | None = None,
+    bbox: str | None = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    return LocationPingHandler().get_all_pings(
+        vehicle_id=vehicle_id, from_ts=from_ts, to_ts=to_ts, bbox=bbox, limit=limit, offset=offset
+    )
 
-@app.get("/api/v1/road-segments")
-async def get_all_road_segments(
-    limit: int = 20,
+@app.post("/api/v1/location-pings", status_code=201)
+async def create_location_ping(new_ping: LocationPingCreate):
+    return LocationPingHandler().create_ping(new_ping)
+
+@app.get("/api/v1/location-pings/{ping_id}")
+async def get_location_ping_by_id(ping_id: int):
+    return LocationPingHandler().get_ping_by_id(ping_id)
+
+@app.put("/api/v1/location-pings/{ping_id}")
+async def update_location_ping(ping_id: int, ping_data: LocationPingUpdate):
+    return LocationPingHandler().update_ping(ping_id, ping_data)
+
+@app.delete("/api/v1/location-pings/{ping_id}")
+async def delete_location_ping(ping_id: int):
+    return LocationPingHandler().delete_ping(ping_id)
+
+@app.get("/api/v1/vehicles/{vehicle_id}/pings")
+async def get_vehicle_pings(
+    vehicle_id: int,
+    limit: int = 100,
     offset: int = 0,
-    name: str | None = None,
-    min_speed_kph: int | None = None,
-    max_speed_kph: int | None = None,
-    bbox: str | None = None
+    from_ts: str | None = None,
+    to_ts: str | None = None
 ):
-    return RoadSegmentHandler().get_all_road_segments(
-        limit=limit,
-        offset=offset,
-        name=name,
-        min_speed_kph=min_speed_kph,
-        max_speed_kph=max_speed_kph,
-        bbox=bbox
+    return LocationPingHandler().get_vehicle_pings(
+        vehicle_id=vehicle_id, limit=limit, offset=offset, from_ts=from_ts, to_ts=to_ts
     )
 
 
-@app.post("/api/v1/road-segments", status_code=201)
-async def create_road_segment(new_road: RoadSegmentCreate):
-    return RoadSegmentHandler().create_road_segment(new_road)
+# trip stuff -----
 
+@app.get("/api/v1/trips")
+async def get_all_trips(
+    vehicle_id: int | None = None,
+    from_ts: str | None = None,
+    to_ts: str | None = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    return TripHandler().get_all_trips(
+        vehicle_id=vehicle_id, from_ts=from_ts, to_ts=to_ts, limit=limit, offset=offset
+    )
 
-@app.get("/api/v1/road-segments/geojson")
-async def get_road_segments_geojson(
-    limit: int = 15000,
+@app.post("/api/v1/trips", status_code=201)
+async def create_trip(new_trip: TripCreate):
+    return TripHandler().create_trip(new_trip)
+
+@app.get("/api/v1/trips/{trip_id}")
+async def get_trip_by_id(trip_id: int):
+    return TripHandler().get_trip_by_id(trip_id)
+
+@app.put("/api/v1/trips/{trip_id}")
+async def update_trip(trip_id: int, trip_data: TripUpdate):
+    return TripHandler().update_trip(trip_id, trip_data)
+
+@app.delete("/api/v1/trips/{trip_id}")
+async def delete_trip(trip_id: int):
+    return TripHandler().delete_trip(trip_id)
+
+@app.get("/api/v1/vehicles/{vehicle_id}/trips")
+async def get_vehicle_trips(
+    vehicle_id: int,
+    limit: int = 50,
     offset: int = 0,
-    name: str | None = None,
-    min_speed_kph: int | None = None,
-    max_speed_kph: int | None = None
+    from_ts: str | None = None,
+    to_ts: str | None = None
 ):
-    return RoadSegmentHandler().get_road_segments_geojson(
-        limit=limit,
-        offset=offset,
-        name=name,
-        min_speed_kph=min_speed_kph,
-        max_speed_kph=max_speed_kph
-    )
-
-
-@app.get("/api/v1/road-segments/{road_id}")
-async def get_road_segment_by_id(road_id: int):
-    return RoadSegmentHandler().get_road_segment_by_id(road_id)
-
-
-@app.put("/api/v1/road-segments/{road_id}")
-async def update_road_segment(
-    road_id: int,
-    road_data: RoadSegmentUpdate
-):
-    return RoadSegmentHandler().update_road_segment(
-        road_id,
-        road_data
-    )
-
-
-@app.delete("/api/v1/road-segments/{road_id}/remove")
-async def delete_road_segment(road_id: int):
-    return RoadSegmentHandler().delete_road_segment(road_id)
-
-
-
-# Parking Area endpoints -----
-
-@app.get("/api/v1/parking-areas")
-async def get_all_parking_areas(
-    limit: int = 20,
-    offset: int = 0,
-    name: str | None = None,
-    bbox: str | None = None
-):
-    return ParkingAreaHandler().get_all_parking_areas(
-        limit=limit,
-        offset=offset,
-        name=name,
-        bbox=bbox
-    )
-
-
-@app.post("/api/v1/parking-areas", status_code=201)
-async def create_parking_area(new_area: ParkingAreaCreate):
-    return ParkingAreaHandler().create_parking_area(new_area)
-
-
-@app.get("/api/v1/parking-areas/{parking_area_id}")
-async def get_parking_area_by_id(parking_area_id: int):
-    return ParkingAreaHandler().get_parking_area_by_id(
-        parking_area_id
-    )
-
-
-@app.put("/api/v1/parking-areas/{parking_area_id}")
-async def update_parking_area(
-    parking_area_id: int,
-    area_data: ParkingAreaUpdate
-):
-    return ParkingAreaHandler().update_parking_area(
-        parking_area_id,
-        area_data
-    )
-
-
-@app.delete("/api/v1/parking-areas/{parking_area_id}")
-async def delete_parking_area(parking_area_id: int):
-    return ParkingAreaHandler().delete_parking_area(
-        parking_area_id
+    return TripHandler().get_vehicle_trips(
+        vehicle_id=vehicle_id, limit=limit, offset=offset, from_ts=from_ts, to_ts=to_ts
     )
